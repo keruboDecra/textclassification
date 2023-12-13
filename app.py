@@ -10,49 +10,45 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# Load the trained model
-model = joblib.load('random_forest_model.joblib')
-_ = joblib.load('random_forest_model.joblib')
+from nltk.stem import WordNetLemmatizer
 
-# Load the TfidfVectorizer
-tfidf_vectorizer = joblib.load('tfidf_vectorizer.joblib')
+# Function to clean and preprocess text
+def preprocess_text(text):
+    text = re.sub(r'http\S+|www\S+|@\S+|#\S+|[^A-Za-z\s]', '', text)
+    text = text.lower()
+    stop_words = set(stopwords.words('english'))
+    lemmatizer = WordNetLemmatizer()
+    tokens = [lemmatizer.lemmatize(word) for word in text.split() if word not in stop_words]
+    return ' '.join(tokens)
 
-# Load the list of offensive words
-offensive_words = set(open('en.txt').read().splitlines())
+# Function to predict using the loaded model
+def predict_cyberbullying(text):
+    # Load the model and vectorizer
+    model = joblib.load('random_forest_model.joblib')
+    vectorizer = joblib.load('tfidf_vectorizer.joblib')
 
-# Streamlit app
-st.title("Cyberbullying Detection App")
+    # Preprocess the input text
+    preprocessed_text = preprocess_text(text)
 
-# Input text box for user's tweet
-user_input = st.text_area("Enter your tweet:")
-
-# Check for offensive words
-offensive_detected = any(word in user_input.lower() for word in offensive_words)
-
-if offensive_detected:
-    st.warning("Offensive word detected! Please modify your text.")
-
-# Make prediction only if no offensive words are detected
-elif st.button("Check for Cyberbullying"):
-    # Preprocess the user input
-    cleaned_input = clean_text(user_input)
-    tokenized_input = cleaned_input.split()
-    tokenized_input = [word.lower() for word in tokenized_input if word not in stop_words]
-    tokenized_input = [lemmatizer.lemmatize(word) for word in tokenized_input]
-
-    # Transform the input using the TfidfVectorizer
-    input_tfidf = tfidf_vectorizer.transform([' '.join(tokenized_input)])
+    # Transform the preprocessed text using the loaded vectorizer
+    text_tfidf = vectorizer.transform([preprocessed_text])
 
     # Make prediction
-    prediction = model.predict(input_tfidf)[0]
+    prediction = model.predict(text_tfidf)
+
+    return prediction[0]
+
+# Streamlit UI
+st.title('Cyberbullying Detection App')
+
+# Input text box
+user_input = st.text_area("Enter a text:", "")
+
+# Check if the user has entered any text
+if user_input:
+    # Make prediction
+    prediction = predict_cyberbullying(user_input)
 
     # Display the prediction
-    if prediction == 1:
-        st.error("Cyberbullying Detected! Please modify your text.")
-    else:
-        st.success("No Cyberbullying Detected. You can proceed.")
-
-# Additional information for the user
-st.info("If your text is classified as not cyberbullying but contains offensive language, you can modify it.")
-
+    st.write(f"Prediction: {'Cyberbullying' if prediction == 1 else 'Not Cyberbullying'}")
 
