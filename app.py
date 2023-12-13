@@ -12,6 +12,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 from nltk.stem import WordNetLemmatizer
 
+
 # Function to clean and preprocess text
 def preprocess_text(text):
     text = re.sub(r'http\S+|www\S+|@\S+|#\S+|[^A-Za-z\s]', '', text)
@@ -23,20 +24,24 @@ def preprocess_text(text):
 
 # Function to predict using the loaded model
 def predict_cyberbullying(text):
-    # Load the model and vectorizer
-    model = joblib.load('random_forest_model.joblib')
-    vectorizer = joblib.load('tfidf_vectorizer.joblib')
+    try:
+        # Load the model and vectorizer
+        model = joblib.load('random_forest_model.joblib')
+        vectorizer = joblib.load('tfidf_vectorizer.joblib')
 
-    # Preprocess the input text
-    preprocessed_text = preprocess_text(text)
+        # Preprocess the input text
+        preprocessed_text = preprocess_text(text)
 
-    # Transform the preprocessed text using the loaded vectorizer
-    text_tfidf = vectorizer.transform([preprocessed_text])
+        # Transform the preprocessed text using the loaded vectorizer
+        text_tfidf = vectorizer.transform([preprocessed_text])
 
-    # Make prediction
-    prediction = model.predict(text_tfidf)
+        # Make prediction
+        prediction = model.predict(text_tfidf)
 
-    return prediction[0]
+        return prediction[0]
+    except Exception as e:
+        st.error(f"Error loading or using the model: {e}")
+        return None
 
 # Streamlit UI
 st.title('Cyberbullying Detection App')
@@ -50,5 +55,5 @@ if user_input:
     prediction = predict_cyberbullying(user_input)
 
     # Display the prediction
-    st.write(f"Prediction: {'Cyberbullying' if prediction == 1 else 'Not Cyberbullying'}")
-
+    if prediction is not None:
+        st.write(f"Prediction: {'Cyberbullying' if prediction == 1 else 'Not Cyberbullying'}")
