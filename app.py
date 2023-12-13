@@ -12,6 +12,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Load the trained model
 model = joblib.load('random_forest_model.joblib')
+_ = joblib.load('random_forest_model.joblib')
 
 # Load the TfidfVectorizer
 tfidf_vectorizer = joblib.load('tfidf_vectorizer.joblib')
