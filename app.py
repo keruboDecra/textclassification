@@ -1,9 +1,10 @@
 import streamlit as st
 import re
-import numpy as np
 import nltk
 import sklearn
 import joblib
+import numpy as np
+np.array(data, dtype=np.float64)
 
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
